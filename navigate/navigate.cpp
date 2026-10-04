@@ -87,4 +87,146 @@ class MAP_BASE
 */
 
 //IMPLEMENT YOUR CODE HERE
+class Robot : public MAP_BASE
+{
+public:
+    // 3x3安全检查
+    bool isSafe(int r, int c)
+    {
+        int rows = static_cast<int>(map_in.size());
+        int cols = static_cast<int>(map_in[0].size());
+        for (int dr = -1; dr <= 1; dr++)
+        {
+            for (int dc = -1; dc <= 1; dc++)
+            {
+                int nr = r + dr;
+                int nc = c + dc;
+                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || map_in[nr][nc] == '#')
+                    return false;
+            }
+        }
+        return true;
+    }
 
+    // 寻找路径并标记
+    void solve()
+    {
+        int rows = static_cast<int>(map_in.size());
+        int cols = static_cast<int>(map_in[0].size());
+
+        // 找起点：从左上角扫描第一个'.'
+        int sr = -1, sc = -1;
+        for (int r = 0; r < rows && sr == -1; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                if (map_in[r][c] == '.')
+                {
+                    sr = r;
+                    sc = c;
+                    break;
+                }
+            }
+        }
+
+        // 找终点：从右下角扫描第一个'.'
+        int er = -1, ec = -1;
+        for (int r = rows - 1; r >= 0 && er == -1; r--)
+        {
+            for (int c = cols - 1; c >= 0; c--)
+            {
+                if (map_in[r][c] == '.')
+                {
+                    er = r;
+                    ec = c;
+                    break;
+                }
+            }
+        }
+
+        // 四向移动
+        int dr[] = {-1, 1, 0, 0};
+        int dc[] = {0, 0, -1, 1};
+
+        // 用于记录路径的父节点
+        std::pair<int, int> parent[100][100];
+        bool found = false;
+        bool useSafety = true;  // 优先尝试3x3安全条件
+
+        // 尝试2次安全条件，不行就回退
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            std::memset(visit, 0, sizeof(visit));
+            std::queue<std::pair<int, int>> q;
+            q.push(std::make_pair(sr, sc));
+            visit[sr][sc] = true;
+
+            while (!q.empty())
+            {
+                std::pair<int, int> cur = q.front();
+                q.pop();
+                int r = cur.first;
+                int c = cur.second;
+
+                // 到达终点
+                if (r == er && c == ec)
+                {
+                    found = true;
+                    break;
+                }
+
+                // 四个方向探索
+                for (int i = 0; i < 4; i++)
+                {
+                    int nr = r + dr[i];
+                    int nc = c + dc[i];
+
+                    // 边界检查、未访问、非障碍物
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols &&
+                        !visit[nr][nc] && map_in[nr][nc] != '#')
+                    {
+                        // 加分条件：3x3安全检查（起点 exempt，机器人起始位置固定）
+                        if (useSafety && !(nr == sr && nc == sc) && !isSafe(nr, nc))
+                            continue;
+
+                        visit[nr][nc] = true;
+                        parent[nr][nc] = std::make_pair(r, c);
+                        q.push(std::make_pair(nr, nc));
+                    }
+                }
+            }
+
+            if (found) break;
+            useSafety = false;  // 3x3条件失败，回退
+        }
+
+        // 回溯路径
+        if (found)
+        {
+            std::vector<std::pair<int, int>> path;
+            std::pair<int, int> cur = std::make_pair(er, ec);
+            while (cur.first != sr || cur.second != sc)
+            {
+                path.push_back(cur);
+                cur = parent[cur.first][cur.second];
+            }
+            path.push_back(std::make_pair(sr, sc));
+
+            // 标记路径
+            for (size_t i = 0; i < path.size(); i++)
+            {
+                map_in[path[i].first][path[i].second] = 'C';
+            }
+        }
+
+        // 输出结果地图
+        print(map_in);
+    }
+};
+
+int main()
+{
+    Robot robot;
+    robot.solve();
+    return 0;
+}
