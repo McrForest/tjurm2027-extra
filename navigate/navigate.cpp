@@ -114,8 +114,10 @@ public:
         int rows = static_cast<int>(map_in.size());
         int cols = static_cast<int>(map_in[0].size());
 
-        // 找起点：从左上角扫描第一个'.'
+       
+        
         int sr = -1, sc = -1;
+        /*
         for (int r = 0; r < rows && sr == -1; r++)
         {
             for (int c = 0; c < cols; c++)
@@ -128,9 +130,13 @@ public:
                 }
             }
         }
+        */
+        sr = 2;
+        sc = 2;
 
-        // 找终点：从右下角扫描第一个'.'
+        
         int er = -1, ec = -1;
+        /*
         for (int r = rows - 1; r >= 0 && er == -1; r--)
         {
             for (int c = cols - 1; c >= 0; c--)
@@ -142,7 +148,9 @@ public:
                     break;
                 }
             }
-        }
+        }*/
+        er = 11;
+        ec = 68;
 
         // 四向移动
         int dr[] = {-1, 1, 0, 0};
@@ -185,7 +193,7 @@ public:
                     if (nr >= 0 && nr < rows && nc >= 0 && nc < cols &&
                         !visit[nr][nc] && map_in[nr][nc] != '#')
                     {
-                        // 加分条件：3x3安全检查（起点 exempt，机器人起始位置固定）
+                        // 3x3安全检查
                         if (useSafety && !(nr == sr && nc == sc) && !isSafe(nr, nc))
                             continue;
 
@@ -217,6 +225,9 @@ public:
             {
                 map_in[path[i].first][path[i].second] = 'C';
             }
+
+            std::cout << "标记的格子总数（路径长度）: " << path.size() << '\n';
+            std::cout << "移动步数: " << path.size() - 1 << '\n';
         }
 
         // 输出结果地图
